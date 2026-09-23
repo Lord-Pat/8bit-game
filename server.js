@@ -296,10 +296,11 @@ const wss = new WebSocketServer({ server, maxPayload: 1024 });
 wss.on('connection', (ws, req) => {
   const addr = req.socket.remoteAddress || '';
   const requestedHostKey = new URL(req.url || '/', 'http://localhost').searchParams.get('host');
-  // En local, localhost sigue siendo profesor por comodidad. En Render/Vercel se
-  // valida la clave configurada en HOST_KEY, ya que Render ve la IP de su proxy.
+  // Sin HOST_KEY (desarrollo local), localhost es profesor por comodidad.
+  // Con HOST_KEY (Render), solo el token concede permisos: Render reenvía las
+  // conexiones mediante su propio proxy y puede aparecer como 127.0.0.1.
   const isLocalhost = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(addr);
-  const isHost = isLocalhost || (HOST_KEY !== '' && requestedHostKey === HOST_KEY);
+  const isHost = HOST_KEY === '' ? isLocalhost : requestedHostKey === HOST_KEY;
   const p = {
     id: nextId++, ws, name: '', joined: false, isHost,
     color: COLORS[colorIdx++ % COLORS.length],
